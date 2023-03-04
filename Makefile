@@ -96,7 +96,7 @@ docker-image:
 IMAGE_PREFIX ?= registry.cn-shanghai.aliyuncs.com/jibutech/
 
 dex.push:
-	docker buildx build --platform linux/amd64,linux/arm64 -f Dockerfile -t ${IMAGE_PREFIX}/dex:1.0.0 --push .
+	docker buildx build --platform linux/amd64,linux/arm64 -f Dockerfile -t ${IMAGE_PREFIX}dex:1.0.0 --push .
 
 .PHONY: verify-proto
 verify-proto: proto
