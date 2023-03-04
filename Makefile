@@ -42,8 +42,8 @@ update-gomplate: ## Check and update gomplate version in Dockerfile.
 .PHONY: release-binary
 release-binary: LD_FLAGS = "-w -X main.version=$(VERSION) -extldflags \"-static\""
 release-binary: ## Build release binaries (used to build a final container image).
-	@go build -o /go/bin/dex -v -ldflags $(LD_FLAGS) $(REPO_PATH)/cmd/dex
-	@go build -o /go/bin/docker-entrypoint -v -ldflags $(LD_FLAGS) $(REPO_PATH)/cmd/docker-entrypoint
+	go build -o /go/bin/dex -v -ldflags $(LD_FLAGS) ./cmd/dex
+	go build -o /go/bin/docker-entrypoint -v -ldflags $(LD_FLAGS) ./cmd/docker-entrypoint
 
 bin/dex:
 	@mkdir -p bin/
@@ -71,6 +71,11 @@ generate-ent: ## Generate code for database ORM.
 generate-proto: ## Generate the Dex client's protobuf code.
 	@protoc --go_out=paths=source_relative:. --go-grpc_out=paths=source_relative:. api/v2/*.proto
 	@protoc --go_out=paths=source_relative:. --go-grpc_out=paths=source_relative:. api/*.proto
+
+IMAGE_PREFIX ?= registry.cn-shanghai.aliyuncs.com/jibutech/
+
+dex.push:
+	docker buildx build --platform linux/amd64,linux/arm64 -f Dockerfile -t ${IMAGE_PREFIX}/dex:1.0.0 --push .
 
 .PHONY: generate-proto-internal
 generate-proto-internal: ## Generate protobuf code for token encoding.
