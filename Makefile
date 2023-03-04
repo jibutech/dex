@@ -27,7 +27,7 @@ KIND_TMP_DIR = "$(PWD)/bin/test/dex-kind-kubeconfig"
 
 .PHONY: generate
 generate:
-	@go generate $(REPO_PATH)/storage/ent/
+	#@go generate $(REPO_PATH)/storage/ent/
 
 build: generate bin/dex
 
@@ -48,8 +48,8 @@ bin/example-app:
 .PHONY: release-binary
 release-binary: LD_FLAGS = "-w -X main.version=$(VERSION) -extldflags \"-static\""
 release-binary: generate
-	@go build -o /go/bin/dex -v -ldflags $(LD_FLAGS) $(REPO_PATH)/cmd/dex
-	@go build -o /go/bin/docker-entrypoint -v -ldflags $(LD_FLAGS) $(REPO_PATH)/cmd/docker-entrypoint
+	go build -o /go/bin/dex -v -ldflags $(LD_FLAGS) ./cmd/dex
+	go build -o /go/bin/docker-entrypoint -v -ldflags $(LD_FLAGS) ./cmd/docker-entrypoint
 
 docker-compose.override.yaml:
 	cp docker-compose.override.yaml.dist docker-compose.override.yaml
@@ -92,6 +92,11 @@ fix: ## Fix lint violations
 .PHONY: docker-image
 docker-image:
 	@sudo docker build -t $(DOCKER_IMAGE) .
+
+IMAGE_PREFIX ?= registry.cn-shanghai.aliyuncs.com/jibutech/
+
+dex.push:
+	docker buildx build --platform linux/amd64,linux/arm64 -f Dockerfile -t ${IMAGE_PREFIX}/dex:1.0.0 --push .
 
 .PHONY: verify-proto
 verify-proto: proto
