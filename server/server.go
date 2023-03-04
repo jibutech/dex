@@ -19,6 +19,7 @@ import (
 	"time"
 
 	gosundheit "github.com/AppsFlyer/go-sundheit"
+	"github.com/dexidp/dex/connector/cas"
 	"github.com/felixge/httpsnoop"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
@@ -554,6 +555,7 @@ var ConnectorsConfig = map[string]func() ConnectorConfig{
 	"bitbucket-cloud": func() ConnectorConfig { return new(bitbucketcloud.Config) },
 	"openshift":       func() ConnectorConfig { return new(openshift.Config) },
 	"atlassian-crowd": func() ConnectorConfig { return new(atlassiancrowd.Config) },
+	"cas":             func() ConnectorConfig { return new(cas.Config) },
 	// Keep around for backwards compatibility.
 	"samlExperimental": func() ConnectorConfig { return new(saml.Config) },
 }
