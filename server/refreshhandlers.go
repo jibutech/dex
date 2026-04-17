@@ -312,7 +312,7 @@ func (s *Server) updateOfflineSession(ctx context.Context, refresh *storage.Refr
 }
 
 // updateRefreshToken updates refresh token and offline session in the storage
-func (s *Server) updateRefreshToken(ctx context.Context, rCtx *refreshContext) (*internal.RefreshToken, connector.Identity, *refreshError) {
+func (s *Server) updateRefreshToken(ctx context.Context, rCtx *refreshContext, userIdent *storage.UserIdentity) (*internal.RefreshToken, connector.Identity, *refreshError) {
 	var rerr *refreshError
 
 	newToken := &internal.RefreshToken{
@@ -337,17 +337,6 @@ func (s *Server) updateRefreshToken(ctx context.Context, rCtx *refreshContext) (
 	// stored in UserIdentity at the time of the last interactive login. This aligns with the
 	// behavior of other identity brokers (e.g., Keycloak, Auth0) that treat downstream sessions
 	// independently from the upstream provider session lifetime.
-	var userIdent *storage.UserIdentity
-	if s.sessionConfig != nil {
-		ui, err := s.storage.GetUserIdentity(ctx, rCtx.storageToken.Claims.UserID, rCtx.storageToken.ConnectorID)
-		if err != nil {
-			s.logger.ErrorContext(ctx, "failed to get user identity for refresh",
-				"user_id", rCtx.storageToken.Claims.UserID, "connector_id", rCtx.storageToken.ConnectorID, "err", err)
-			return nil, ident, newInternalServerError()
-		}
-		userIdent = &ui
-	}
-
 	refreshTokenUpdater := func(old storage.RefreshToken) (storage.RefreshToken, error) {
 		rotationEnabled := s.refreshTokenPolicy.RotationEnabled()
 		reusingAllowed := s.refreshTokenPolicy.AllowedToReuse(old.LastUsed)
@@ -457,7 +446,24 @@ func (s *Server) handleRefreshToken(w http.ResponseWriter, r *http.Request, clie
 		return
 	}
 
-	newToken, ident, rerr := s.updateRefreshToken(r.Context(), rCtx)
+	var userIdent *storage.UserIdentity
+
+	if s.sessionConfig != nil {
+		ui, err := s.storage.GetUserIdentity(r.Context(), rCtx.storageToken.Claims.UserID, rCtx.storageToken.ConnectorID)
+		if err != nil {
+			s.logger.ErrorContext(r.Context(), "failed to get user identity", "err", err)
+			s.refreshTokenErrHelper(w, newInternalServerError())
+			return
+		}
+		userIdent = &ui
+	}
+
+	authTime := time.Time{}
+	if userIdent != nil {
+		authTime = userIdent.LastLogin
+	}
+
+	newToken, ident, rerr := s.updateRefreshToken(r.Context(), rCtx, userIdent)
 	if rerr != nil {
 		s.refreshTokenErrHelper(w, rerr)
 		return
@@ -470,17 +476,6 @@ func (s *Server) handleRefreshToken(w http.ResponseWriter, r *http.Request, clie
 		Email:             ident.Email,
 		EmailVerified:     ident.EmailVerified,
 		Groups:            ident.Groups,
-	}
-
-	authTime := time.Time{}
-	if s.sessionConfig != nil {
-		ui, err := s.storage.GetUserIdentity(r.Context(), ident.UserID, rCtx.storageToken.ConnectorID)
-		if err != nil {
-			s.logger.ErrorContext(r.Context(), "failed to get user identity", "err", err)
-			s.refreshTokenErrHelper(w, newInternalServerError())
-			return
-		}
-		authTime = ui.LastLogin
 	}
 
 	accessToken, _, err := s.newAccessToken(r.Context(), client.ID, claims, rCtx.scopes, rCtx.storageToken.Nonce, rCtx.storageToken.ConnectorID, authTime)
