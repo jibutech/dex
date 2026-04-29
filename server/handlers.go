@@ -1016,6 +1016,7 @@ func (s *Server) handleApproval(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) sendCodeResponse(w http.ResponseWriter, r *http.Request, authReq storage.AuthRequest) {
 	s.updateSessionTokenIssuedAt(r, authReq.ClientID)
+	s.logger.Info("send code response", "req", authReq.ID)
 
 	ctx := r.Context()
 	if s.now().After(authReq.Expiry) {
