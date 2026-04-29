@@ -135,8 +135,10 @@ func (s *Server) handleAuthCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if state != exampleAppState {
-		http.Error(w, fmt.Sprintf("expected state %q got %q", exampleAppState, state), http.StatusBadRequest)
-		return
+		//http.Error(w, fmt.Sprintf("expected state %q got %q", exampleAppState, state), http.StatusBadRequest)
+		//return
+		// just log as warning
+		log.Printf("expected state %q got %q", exampleAppState, state)
 	}
 
 	ctx := oidc.ClientContext(r.Context(), s.client)
