@@ -269,6 +269,7 @@ func (cli *client) GetAuthRequest(id string) (storage.AuthRequest, error) {
 }
 
 func (cli *client) GetAuthCode(id string) (storage.AuthCode, error) {
+	cli.logger.Infof("get auth code %s", id)
 	var code AuthCode
 	if err := cli.get(resourceAuthCode, id, &code); err != nil {
 		return storage.AuthCode{}, err

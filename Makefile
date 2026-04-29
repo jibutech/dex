@@ -93,7 +93,7 @@ fix: ## Fix lint violations
 docker-image:
 	@sudo docker build -t $(DOCKER_IMAGE) .
 
-IMAGE_PREFIX ?= registry.cn-shanghai.aliyuncs.com/jibutech/
+IMAGE_PREFIX ?= jibutech-registry.cn-hangzhou.cr.aliyuncs.com/ys1000
 
 dex.push:
 	docker buildx build --platform linux/amd64,linux/arm64 -f Dockerfile -t ${IMAGE_PREFIX}/dex:1.0.0 --push .
