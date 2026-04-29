@@ -20,7 +20,7 @@ type Config struct {
 	InsecureSkipVerify bool   `json:"insecureSkipVerify,omitempty"`
 }
 
-func (c Config) Open(id string, logger slog.Logger) (connector.Connector, error) {
+func (c Config) Open(id string, logger *slog.Logger) (connector.Connector, error) {
 	casURL, err := url.Parse(c.Server)
 	if err != nil {
 		return nil, err
@@ -62,19 +62,19 @@ func (c *casConnector) Refresh(ctx context.Context, s connector.Scopes, identity
 	panic("implement me")
 }
 
-func (c *casConnector) LoginURL(s connector.Scopes, callbackURL, state string) (string, error) {
+func (c *casConnector) LoginURL(s connector.Scopes, callbackURL, state string) (string, []byte, error) {
 	if c.RedirectURI != callbackURL {
-		return "", fmt.Errorf("expected callback URL %q did not match the URL in the config %q", callbackURL, c.RedirectURI)
+		return "", nil, fmt.Errorf("expected callback URL %q did not match the URL in the config %q", callbackURL, c.RedirectURI)
 	}
 
 	u, err := url.Parse(callbackURL)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse callbackURL %q: %v", callbackURL, err)
+		return "", nil, fmt.Errorf("failed to parse callbackURL %q: %v", callbackURL, err)
 	}
 
 	server, err := url.Parse(c.Server)
 	if err != nil {
-		return "", fmt.Errorf("failed to parse server %q: %v", c.Server, err)
+		return "", nil, fmt.Errorf("failed to parse server %q: %v", c.Server, err)
 	}
 
 	v := u.Query()
@@ -85,10 +85,10 @@ func (c *casConnector) LoginURL(s connector.Scopes, callbackURL, state string) (
 	v.Set("service", service)
 	server.RawQuery = v.Encode()
 
-	return server.String(), nil
+	return server.String(), nil, nil
 }
 
-func (c *casConnector) HandleCallback(s connector.Scopes, r *http.Request) (identity connector.Identity, err error) {
+func (c *casConnector) HandleCallback(s connector.Scopes, _ []byte, r *http.Request) (identity connector.Identity, err error) {
 	// CAS callback, see also https://apereo.github.io/cas/6.3.x/protocol/CAS-Protocol-V2-Specification.html#25-servicevalidate-cas-20
 	ticket := r.URL.Query().Get("ticket")
 	resp, err := c.client.ValidateServiceTicket(gocas.ServiceTicket(ticket))
