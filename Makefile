@@ -72,7 +72,7 @@ generate-proto: ## Generate the Dex client's protobuf code.
 	@protoc --go_out=paths=source_relative:. --go-grpc_out=paths=source_relative:. api/v2/*.proto
 	@protoc --go_out=paths=source_relative:. --go-grpc_out=paths=source_relative:. api/*.proto
 
-IMAGE_PREFIX ?= jibutech-registry.cn-hangzhou.cr.aliyuncs.com/ys1000/
+IMAGE_PREFIX ?= jibutech-registry.cn-hangzhou.cr.aliyuncs.com/ys1000
 
 dex.push:
 	docker buildx build --platform linux/amd64,linux/arm64 -f Dockerfile -t ${IMAGE_PREFIX}/dex:2.0.0 --push .
