@@ -590,7 +590,7 @@ func (cli *client) fromStorageAuthCode(a storage.AuthCode) AuthCode {
 			APIVersion: cli.apiVersion,
 		},
 		ObjectMeta: k8sapi.ObjectMeta{
-			Name:      a.ID,
+			Name:      strings.ToLower(a.ID),
 			Namespace: cli.namespace,
 		},
 		ClientID:            a.ClientID,

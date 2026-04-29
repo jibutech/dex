@@ -295,7 +295,7 @@ func (cli *client) GetAuthRequest(ctx context.Context, id string) (storage.AuthR
 
 func (cli *client) GetAuthCode(ctx context.Context, id string) (storage.AuthCode, error) {
 	// if id is not a valid name, convert it to a valid name, and then tolower
-	id = strings.ToLower(cli.idToName(id))
+	id = strings.ToLower(id)
 	var code AuthCode
 	if err := cli.get(resourceAuthCode, id, &code); err != nil {
 		return storage.AuthCode{}, err
