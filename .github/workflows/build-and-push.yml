@@ -64,7 +64,7 @@ jobs:
           password: ${{ secrets.REGISTRY_PASS }}
       - name: Build and push Docker images
         run: |
-          GOPROXY=https://proxy.golang.org,direct BUILD_LATEST=${LATEST} PLATFORM=${PLATFORM} IMAGE_PREFIX=${REGISTRY}/ys1000/ make ${TARGET%% *}.push
+          GOPROXY=https://proxy.golang.org,direct BUILD_LATEST=${LATEST} PLATFORM=${PLATFORM} IMAGE_PREFIX=${REGISTRY}/ys1000 make ${TARGET%% *}.push
         env:
           TARGET: ${{ inputs.target }}
           LATEST: ${{ inputs.with_latest_tag }}
