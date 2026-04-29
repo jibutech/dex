@@ -992,6 +992,8 @@ func (s *Server) handleApproval(w http.ResponseWriter, r *http.Request) {
 		}
 		if err := s.templates.approval(r, w, authReq.ID, authReq.Claims.Username, client.Name, authReq.Scopes); err != nil {
 			s.logger.ErrorContext(r.Context(), "server template error", "err", err)
+			s.renderError(r, w, http.StatusInternalServerError, "Failed to render approval page.")
+			return // 添加 return，防止流程继续
 		}
 	case http.MethodPost:
 		if r.FormValue("approval") != "approve" {
