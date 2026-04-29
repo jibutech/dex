@@ -919,6 +919,8 @@ func (s *Server) finalizeLogin(ctx context.Context, identity connector.Identity,
 }
 
 func (s *Server) handleApproval(w http.ResponseWriter, r *http.Request) {
+	s.logger.Info("handle approval", "req", r)
+
 	ctx := r.Context()
 	macEncoded := r.FormValue("hmac")
 	if macEncoded == "" {
