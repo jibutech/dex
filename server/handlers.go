@@ -678,6 +678,8 @@ func (s *Server) handleConnectorCallback(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	s.logger.InfoContext(r.Context(), "connector callback", "auth_id", authID)
+
 	authReq, err := s.storage.GetAuthRequest(ctx, authID)
 	if err != nil {
 		if err == storage.ErrNotFound {
@@ -739,6 +741,8 @@ func (s *Server) handleConnectorCallback(w http.ResponseWriter, r *http.Request)
 		}
 		return
 	}
+
+	s.logger.InfoContext(r.Context(), "connector callback", "identity", identity)
 
 	redirectURL, canSkipApproval, err := s.finalizeLogin(ctx, identity, authReq, conn.Connector)
 	if err != nil {
