@@ -17,6 +17,7 @@ import (
 )
 
 var _ connector.CallbackConnector = (*oauthConnector)(nil)
+var _ connector.LogoutCallbackConnector = (*oauthConnector)(nil)
 
 type oauthConnector struct {
 	clientID             string
@@ -25,6 +26,7 @@ type oauthConnector struct {
 	tokenURL             string
 	authorizationURL     string
 	userInfoURL          string
+	logoutURL            string
 	scopes               []string
 	userIDKey            string
 	userNameKey          string
@@ -47,6 +49,7 @@ type Config struct {
 	TokenURL           string   `json:"tokenURL"`
 	AuthorizationURL   string   `json:"authorizationURL"`
 	UserInfoURL        string   `json:"userInfoURL"`
+	LogoutURL          string   `json:"logoutURL"`
 	Scopes             []string `json:"scopes"`
 	RootCAs            []string `json:"rootCAs"`
 	InsecureSkipVerify bool     `json:"insecureSkipVerify"`
@@ -99,6 +102,7 @@ func (c *Config) Open(id string, logger *slog.Logger) (connector.Connector, erro
 		tokenURL:             c.TokenURL,
 		authorizationURL:     c.AuthorizationURL,
 		userInfoURL:          c.UserInfoURL,
+		logoutURL:            c.LogoutURL,
 		scopes:               c.Scopes,
 		redirectURI:          c.RedirectURI,
 		logger:               logger.With(slog.Group("connector", "type", "oauth", "id", id)),
@@ -259,4 +263,16 @@ func decode(seg string) ([]byte, error) {
 	}
 
 	return base64.URLEncoding.DecodeString(seg)
+}
+
+func (c *oauthConnector) LogoutURL(_ context.Context, connectorData []byte, postLogoutRedirectURI string) (string, error) {
+	if c.logoutURL == "" {
+		return "", nil
+	}
+
+	return c.logoutURL, nil
+}
+
+func (c *oauthConnector) HandleLogoutCallback(_ context.Context, _ *http.Request) error {
+	return nil
 }
