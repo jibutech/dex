@@ -125,6 +125,18 @@ func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
 			s.renderError(r, w, http.StatusBadRequest, "Unregistered post_logout_redirect_uri.")
 			return
 		}
+	} else {
+		s.logger.InfoContext(ctx, "logout: no post_logout_redirect_uri")
+		// try to set post_logout_redirect_uri from client config
+		if clientID != "" {
+			client, err := s.storage.GetClient(ctx, clientID)
+			if err != nil {
+				s.logger.ErrorContext(ctx, "logout: failed to get client", "client_id", clientID, "err", err)
+				s.renderError(r, w, http.StatusBadRequest, "Invalid client.")
+				return
+			}
+			postLogoutRedirectURI = client.PostLogoutRedirectURIs[0]
+		}
 	}
 
 	// Revoke refresh tokens (does not touch the auth session or user identity).
@@ -137,6 +149,7 @@ func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
 	// and logout parameters. If the session doesn't exist (expired, no cookie, etc.)
 	// upstream logout is skipped — RP-Initiated Logout treats upstream SLO as best-effort.
 	if redirectURL, ok := s.tryUpstreamLogout(ctx, userID, connectorID, connectorData, postLogoutRedirectURI, state, clientID); ok {
+		s.logger.InfoContext(ctx, "logout: upstream logout redirect", "uri", redirectURL)
 		http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 		return
 	}
