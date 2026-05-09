@@ -250,16 +250,19 @@ func (s *Server) finishLogout(w http.ResponseWriter, r *http.Request, postLogout
 // upstream logout is not possible (no session, connector doesn't support it, etc.).
 func (s *Server) tryUpstreamLogout(ctx context.Context, userID, connectorID string, connectorData []byte, postLogoutRedirectURI, state, clientID string) (string, bool) {
 	if connectorID == "" {
+		s.logger.InfoContext(ctx, "logout: no connector_id")
 		return "", false
 	}
 
 	conn, err := s.getConnector(ctx, connectorID)
 	if err != nil {
+		s.logger.ErrorContext(ctx, "logout: failed to get connector", "connector_id", connectorID, "err", err)
 		return "", false
 	}
 
 	logoutConn, ok := conn.Connector.(connector.LogoutCallbackConnector)
 	if !ok {
+		s.logger.ErrorContext(ctx, "logout: connector does not support logout callback", "connector_id", connectorID)
 		return "", false
 	}
 
@@ -292,6 +295,7 @@ func (s *Server) tryUpstreamLogout(ctx context.Context, userID, connectorID stri
 		return "", false
 	}
 	if upstreamURL == "" {
+		s.logger.InfoContext(ctx, "logout: no upstream logout URL")
 		return "", false
 	}
 
